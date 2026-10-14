@@ -4,7 +4,7 @@ Template agnóstico para iniciar projetos completos em Rust com uma organizaçã
 
 ## O que está incluído
 
-- `app`: serviço Rust de exemplo com domínio, portas e adaptadores separados.
+- `example`: serviço Rust de exemplo com domínio, portas e adaptadores separados.
 - `frontend`: frontend estático mínimo, compilado com Vite.
 - `nginx`: gateway reverso que entrega o frontend e encaminha `/api` para o serviço Rust.
 - `compose.yaml`: ambiente local com rede interna, healthcheck e volumes de desenvolvimento.
@@ -49,7 +49,7 @@ curl http://localhost:3000/health
 Em outro terminal:
 
 ```bash
-cd frontend
+cd apps/frontend
 npm install
 npm run dev
 ```
