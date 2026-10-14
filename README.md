@@ -1,31 +1,40 @@
 # Rust Service Template
 
-Template agnóstico para iniciar projetos completos em Rust com uma organização voltada a microsserviços e arquitetura hexagonal.
+Template de referência para iniciar aplicações em Rust com arquitetura hexagonal, frontend moderno e gateway reverso em um único ambiente de desenvolvimento.
 
-## O que está incluído
+## Visão geral
 
-- `example`: serviço Rust de exemplo com domínio, portas e adaptadores separados.
-- `frontend`: frontend estático mínimo, compilado com Vite.
-- `nginx`: gateway reverso que entrega o frontend e encaminha `/api` para o serviço Rust.
-- `compose.yaml`: ambiente local com rede interna, healthcheck e volumes de desenvolvimento.
-- `docs/adr`: decisões arquiteturais registradas como ADRs.
-- Dockerfiles multistage para produzir imagens finais pequenas e sem ferramentas de build.
+Este repositório reúne uma estrutura prática para projetos full-stack com:
+
+- `apps/example`: serviço backend em Rust com domínio, casos de uso, portas e adaptadores.
+- `apps/frontend`: frontend em React + Vite.
+- `nginx`: gateway reverso que entrega o frontend e encaminha requisições `/api` para o serviço backend.
+- `compose.yaml`: ambiente local com rede interna, healthchecks e orquestração simples.
+- `apps/docs/adr`: decisões arquiteturais documentadas em ADRs.
+- Dockerfiles multistage para imagens finais leves e reproduzíveis.
 
 ## Pré-requisitos
 
-- Docker Engine 24+ e Docker Compose v2.
-- Rust 1.88+ apenas para desenvolvimento fora do Docker (opcional).
-- Node.js 22+ apenas para desenvolvimento do frontend fora do Docker (opcional).
+- Docker Engine 24+
+- Docker Compose v2
+- Rust 1.88+ (opcional, para desenvolvimento local fora do Docker)
+- Node.js 22+ (opcional, para desenvolvimento do frontend fora do Docker)
 
 ## Executando com Docker Compose
+
+Na raiz do projeto:
 
 ```bash
 docker compose up --build
 ```
 
-Abra <http://localhost:8080>. A API também pode ser verificada diretamente em <http://localhost:8080/api/health>.
+Depois disso, o ambiente fica disponível em:
 
-Para executar em segundo plano:
+- Frontend: <http://localhost:8080>
+- API: <http://localhost:8080/api>
+- Healthcheck da API: <http://localhost:8080/api/health>
+
+Para subir em segundo plano:
 
 ```bash
 docker compose up --build -d
@@ -33,18 +42,28 @@ docker compose ps
 docker compose logs -f app
 ```
 
-Para desligar e remover os containers:
+Para encerrar:
 
 ```bash
 docker compose down
 ```
 
-## Executando localmente
+Se quiser remover também volumes e redes criadas:
 
 ```bash
-cargo run --manifest-path app/Cargo.toml
+docker compose down -v
+```
+
+## Executando localmente
+
+### Backend em Rust
+
+```bash
+cargo run --manifest-path apps/example/Cargo.toml
 curl http://localhost:3000/health
 ```
+
+### Frontend em React
 
 Em outro terminal:
 
@@ -54,39 +73,64 @@ npm install
 npm run dev
 ```
 
-## Estrutura
+A aplicação frontend costuma ficar disponível em <http://localhost:5173>.
+
+## Estrutura do repositório
 
 ```text
+.
 ├── apps/
-│    ├── example/
-│    │   ├── src/
-│    │   │   ├── adapters/inbound/http
-│    │   │   ├── adapters/outbound
-│    │   │   ├── application
-│    │   │   ├── domain
-│    │   │   └── ports
-│    │   └── Dockerfile
-│    ├── frontend/
-│    │   ├── src/
-│    │   └── Dockerfile
-│    ├── nginx/
-│    │   └── nginx.conf
-│    └── docs/adr/
-└── compose.yaml
+│   ├── docs/
+│   │   └── adr/
+│   │       ├── 0001-arquitetura-hexagonal.md
+│   │       ├── 0002-compose-e-nginx-como-borda.md
+│   │       └── 0003-imagens-multistage.md
+│   ├── example/
+│   │   ├── src/
+│   │   ├── Cargo.toml
+│   │   ├── Cargo.lock
+│   │   └── Dockerfile
+│   └── frontend/
+│       ├── src/
+│       ├── package.json
+│       ├── vite.config.ts
+│       └── Dockerfile
+├── nginx/
+│   └── nginx.conf
+├── compose.yaml
+├── .env.example
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+└── .github/
 ```
 
-## Próximos passos
+## Fluxo de trabalho recomendado
 
-1. Renomeie o crate e o serviço em `app/Cargo.toml` e `compose.yaml`.
-2. Substitua o adaptador de memória por um adaptador de persistência.
-3. Adicione novos casos de uso em `application` e exponha-os por portas de entrada.
-4. Registre decisões relevantes em `docs/adr`.
-5. Crie novos serviços no Compose mantendo uma imagem multistage e um healthcheck.
+1. Renomeie o pacote e os serviços de exemplo para refletirem o seu projeto.
+2. Ajuste o backend para usar seu adaptador de persistência ou integração real.
+3. Adicione casos de uso na camada de aplicação e exponha-os por portas de entrada.
+4. Registre decisões importantes em `apps/docs/adr`.
+5. Mantenha a configuração de container e healthcheck consistentes com o ambiente de produção.
 
 ## Comandos úteis
 
 ```bash
-cargo fmt --manifest-path app/Cargo.toml -- --check
-cargo test --manifest-path app/Cargo.toml
+cargo fmt --manifest-path apps/example/Cargo.toml -- --check
+cargo test --manifest-path apps/example/Cargo.toml
 docker compose config
 ```
+
+```bash
+cd apps/frontend
+npm run build
+npm run test
+```
+
+## Observações
+
+- O frontend e o backend podem ser desenvolvidos separadamente para maior velocidade de iteração.
+- O ambiente Docker Compose é a forma mais simples de validar o comportamento completo do template.
+- O repositório foi pensado como base para microsserviços e serviços com frontend, mas pode ser adaptado para projetos menores.
